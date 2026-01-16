@@ -3434,6 +3434,6 @@ function buildCandidateCard(game) {
   return card;
 }
 
-for (game of games) {
+for (let game of games) {
   candidatesSection.appendChild(buildCandidateCard(game));
 }
