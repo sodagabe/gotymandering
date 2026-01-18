@@ -3422,13 +3422,39 @@ class Game {
   }
 }
 
+class StorageController {
+  static #gameListKey = "gameList";
+
+  static loadGameList() {
+    const stringList = localStorage.getItem(this.#gameListKey);
+    let gameList = [];
+    const JSONList = JSON.parse(stringList);
+    if (JSONList) {
+      gameList = JSONList.map((gameID) =>
+        games.find((game) => game.id === gameID),
+      );
+    }
+    return gameList;
+  }
+
+  static saveGameList(gameList) {
+    const idList = gameList.map((game) => game.id);
+    const JSONList = JSON.stringify(idList);
+    localStorage.setItem(this.#gameListKey, JSONList);
+  }
+}
+
 class OrderedListController {
   #elements;
   #orderedList;
 
-  constructor() {
-    this.#elements = new Set();
-    this.#orderedList = [];
+  constructor(orderedList = []) {
+    this.#orderedList = orderedList;
+    this.#elements = new Set(this.#orderedList);
+  }
+
+  get list() {
+    return this.#orderedList;
   }
 
   get length() {
@@ -3436,6 +3462,7 @@ class OrderedListController {
   }
 
   add(game, order = 1) {
+    let updated = false;
     const currentLength = this.length;
     this.#elements.add(game);
     const newLength = this.length;
@@ -3449,19 +3476,108 @@ class OrderedListController {
         this.#orderedList.push(game);
         this.#orderedList.push(...listTail);
       }
-      console.log(this.#orderedList);
+      updated = true;
+      StorageController.saveGameList(this.#orderedList);
+    }
+    return updated;
+  }
+}
+
+class GameRenderer {
+  game;
+
+  constructor(game) {
+    this.game = game;
+  }
+
+  listCard() {
+    const cardContainer = document.createElement("article");
+    const card = document.createElement("div");
+    const cardBody = document.createElement("div");
+    const cardTitle = document.createElement("h5");
+    const cardGenres = document.createElement("h6");
+    const cardReleaseDate = document.createElement("p");
+    cardContainer.className = "col";
+    card.className = "card";
+    cardBody.className = "card-body";
+    cardTitle.className = "card-title fw-bold text-truncate";
+    cardTitle.textContent = this.game.name;
+    cardGenres.className = "card-subtitle text-secondary small text-truncate";
+    cardGenres.textContent = this.game.genres;
+    cardReleaseDate.className = "card-text small";
+    cardReleaseDate.textContent = this.game.releaseDate;
+    cardBody.appendChild(cardTitle);
+    cardBody.appendChild(cardGenres);
+    cardBody.appendChild(cardReleaseDate);
+    card.appendChild(cardBody);
+    cardContainer.appendChild(card);
+    return cardContainer;
+  }
+
+  candidateOption() {
+    const option = document.createElement("option");
+    option.value = this.game.name;
+    option.setAttribute("name", this.game.name);
+    option.setAttribute("id", this.game.id);
+    return option;
+  }
+}
+
+class GameListRenderer {
+  #games;
+  #parentElement;
+
+  constructor(games, parentElement) {
+    this.#games = games;
+    this.#parentElement = parentElement;
+  }
+
+  render(newList = null) {
+    this.#games = newList ?? this.#games;
+    this.#parentElement.textContent = "";
+    for (const game of this.#games) {
+      const gameRenderer = new GameRenderer(game);
+      const gameRender = gameRenderer.listCard();
+      this.#parentElement.appendChild(gameRender);
     }
   }
 }
 
+class GOTYList {
+  #controller;
+  #element;
+  #renderer;
+
+  constructor(listElement) {
+    const savedList = StorageController.loadGameList() ?? [];
+    this.#controller = new OrderedListController(savedList);
+    this.#element = listElement;
+    this.#renderer = new GameListRenderer(this.games, this.#element);
+    this.#renderer.render();
+  }
+
+  get games() {
+    return this.#controller.list;
+  }
+
+  add(game, order = 1) {
+    const updated = this.#controller.add(game, order);
+    if (updated) {
+      this.#renderer.render(this.games);
+    }
+  }
+}
+
+//Load JSON database into objects
 Game.loadDB(games);
 
+// Elements
 const gameInput = document.querySelector("#game-input");
 const gameInputOptions = document.querySelector("#game-input-options");
 const listSection = document.querySelector("#goty-list");
 const candidatesSection = document.querySelector("#candidates");
 
-const gotyList = new OrderedListController();
+const gotyList = new GOTYList(listSection);
 
 gameInput.addEventListener("input", (e) => {
   const selectedOption = gameInputOptions.options.namedItem(e.target.value);
@@ -3472,39 +3588,7 @@ gameInput.addEventListener("input", (e) => {
   }
 });
 
-function buildCandidateCard(game) {
-  const cardContainer = document.createElement("article");
-  const card = document.createElement("div");
-  const cardBody = document.createElement("div");
-  const cardTitle = document.createElement("h5");
-  const cardGenres = document.createElement("h6");
-  const cardReleaseDate = document.createElement("p");
-  cardContainer.className = "col";
-  card.className = "card";
-  cardBody.className = "card-body";
-  cardTitle.className = "card-title text-truncate";
-  cardTitle.textContent = game.name;
-  cardGenres.className = "card-subtitle text-truncate";
-  cardGenres.textContent = game.genres;
-  cardReleaseDate.className = "card-text";
-  cardReleaseDate.textContent = game.releaseDate;
-  cardBody.appendChild(cardTitle);
-  cardBody.appendChild(cardGenres);
-  cardBody.appendChild(cardReleaseDate);
-  card.appendChild(cardBody);
-  cardContainer.appendChild(card);
-  return cardContainer;
-}
-
-function buildCandidateOption(game) {
-  const option = document.createElement("option");
-  option.value = game.name;
-  option.setAttribute("name", game.name);
-  option.setAttribute("id", game.id);
-  return option;
-}
-
 for (let game of games) {
-  gameInputOptions.appendChild(buildCandidateOption(game));
-  candidatesSection.appendChild(buildCandidateCard(game));
+  const renderer = new GameRenderer(game);
+  gameInputOptions.appendChild(renderer.candidateOption());
 }
