@@ -3422,9 +3422,55 @@ class Game {
   }
 }
 
+class OrderedListController {
+  #elements;
+  #orderedList;
+
+  constructor() {
+    this.#elements = new Set();
+    this.#orderedList = [];
+  }
+
+  get length() {
+    return this.#elements.size;
+  }
+
+  add(game, order = 1) {
+    const currentLength = this.length;
+    this.#elements.add(game);
+    const newLength = this.length;
+    if (currentLength != newLength) {
+      if (order < 1) {
+        this.#orderedList.unshift(game);
+      } else if (order > newLength) {
+        this.#orderedList.push(game);
+      } else {
+        const listTail = this.#orderedList.splice(order - 1);
+        this.#orderedList.push(game);
+        this.#orderedList.push(...listTail);
+      }
+      console.log(this.#orderedList);
+    }
+  }
+}
+
 Game.loadDB(games);
 
+const gameInput = document.querySelector("#game-input");
+const gameInputOptions = document.querySelector("#game-input-options");
+const listSection = document.querySelector("#goty-list");
 const candidatesSection = document.querySelector("#candidates");
+
+const gotyList = new OrderedListController();
+
+gameInput.addEventListener("input", (e) => {
+  const selectedOption = gameInputOptions.options.namedItem(e.target.value);
+  if (selectedOption) {
+    const selectedGameID = parseInt(selectedOption.id);
+    const game = games.find((game) => game.id === selectedGameID);
+    gotyList.add(game);
+  }
+});
 
 function buildCandidateCard(game) {
   const cardContainer = document.createElement("article");
