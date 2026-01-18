@@ -3370,12 +3370,14 @@ const GENRES_DB = [
 const games = [];
 
 class Game {
+  #id;
   name;
   #releaseDate;
   #genres;
   rating;
 
-  constructor(name, releaseDate, genres, rating) {
+  constructor(id, name, releaseDate, genres, rating) {
+    this.#id = id;
     this.name = name;
     this.#releaseDate = releaseDate;
     this.#genres = genres;
@@ -3395,9 +3397,13 @@ class Game {
         });
       }
       const rating = entry.total_rating;
-      const game = new Game(name, releaseDate, genres, rating);
+      const game = new Game(entry.id, name, releaseDate, genres, rating);
       games.push(game);
     }
+  }
+
+  get id() {
+    return this.#id;
   }
 
   get genres() {
@@ -3421,19 +3427,38 @@ Game.loadDB(games);
 const candidatesSection = document.querySelector("#candidates");
 
 function buildCandidateCard(game) {
-  const card = document.createElement("article");
-  const cardTitle = document.createElement("h2");
-  const cardGenres = document.createElement("p");
+  const cardContainer = document.createElement("article");
+  const card = document.createElement("div");
+  const cardBody = document.createElement("div");
+  const cardTitle = document.createElement("h5");
+  const cardGenres = document.createElement("h6");
   const cardReleaseDate = document.createElement("p");
+  cardContainer.className = "col";
+  card.className = "card";
+  cardBody.className = "card-body";
+  cardTitle.className = "card-title text-truncate";
   cardTitle.textContent = game.name;
+  cardGenres.className = "card-subtitle text-truncate";
   cardGenres.textContent = game.genres;
+  cardReleaseDate.className = "card-text";
   cardReleaseDate.textContent = game.releaseDate;
-  card.appendChild(cardTitle);
-  card.appendChild(cardGenres);
-  card.appendChild(cardReleaseDate);
-  return card;
+  cardBody.appendChild(cardTitle);
+  cardBody.appendChild(cardGenres);
+  cardBody.appendChild(cardReleaseDate);
+  card.appendChild(cardBody);
+  cardContainer.appendChild(card);
+  return cardContainer;
+}
+
+function buildCandidateOption(game) {
+  const option = document.createElement("option");
+  option.value = game.name;
+  option.setAttribute("name", game.name);
+  option.setAttribute("id", game.id);
+  return option;
 }
 
 for (let game of games) {
+  gameInputOptions.appendChild(buildCandidateOption(game));
   candidatesSection.appendChild(buildCandidateCard(game));
 }
