@@ -3367,7 +3367,9 @@ const GENRES_DB = [
   },
 ];
 
-const games = [];
+/* ------------------------ */
+/* Classes                  */
+/* ------------------------ */
 
 class Game {
   #id;
@@ -3437,7 +3439,7 @@ class StorageController {
     return gameList;
   }
 
-  static saveGameList(gameList) {
+  static saveGameList(gameList = []) {
     const idList = gameList.map((game) => game.id);
     const JSONList = JSON.stringify(idList);
     localStorage.setItem(this.#gameListKey, JSONList);
@@ -3481,6 +3483,28 @@ class OrderedListController {
     }
     return updated;
   }
+
+  clear() {
+    this.#elements.clear();
+    this.#orderedList = [];
+    StorageController.saveGameList();
+  }
+}
+
+class IconRenderer {
+  static icon(name) {
+    const icon = document.createElement("i");
+    icon.className = `bi bi-${name}`;
+    return icon;
+  }
+
+  static button(name) {
+    const icon = this.icon(name);
+    const button = document.createElement("button");
+    button.className = "btn btn-light";
+    button.appendChild(icon);
+    return button;
+  }
 }
 
 class GameRenderer {
@@ -3509,6 +3533,8 @@ class GameRenderer {
     cardBody.appendChild(cardTitle);
     cardBody.appendChild(cardGenres);
     cardBody.appendChild(cardReleaseDate);
+    const trashIcon = IconRenderer.button("trash3");
+    cardBody.appendChild(trashIcon);
     card.appendChild(cardBody);
     cardContainer.appendChild(card);
     return cardContainer;
@@ -3566,19 +3592,31 @@ class GOTYList {
       this.#renderer.render(this.games);
     }
   }
-}
 
-//Load JSON database into objects
-Game.loadDB(games);
+  clear() {
+    this.#controller.clear();
+    this.#renderer.render(this.games);
+  }
+}
 
 // Elements
 const gameInput = document.querySelector("#game-input");
 const gameInputOptions = document.querySelector("#game-input-options");
 const listSection = document.querySelector("#goty-list");
-const candidatesSection = document.querySelector("#candidates");
+const deleteAllBtn = document.querySelector("#btn-delete-all");
 
+// Load JSON database into objects
+const games = [];
+Game.loadDB(games);
+
+// Start main controller
 const gotyList = new GOTYList(listSection);
 
+/* ------------------------ */
+/* Events                   */
+/* ------------------------ */
+
+// + add game to list
 gameInput.addEventListener("input", (e) => {
   const selectedOption = gameInputOptions.options.namedItem(e.target.value);
   if (selectedOption) {
@@ -3588,6 +3626,10 @@ gameInput.addEventListener("input", (e) => {
   }
 });
 
+// + delete all (clear list)
+deleteAllBtn.onclick = () => gotyList.clear();
+
+// Populate input's datalist with candidates
 for (let game of games) {
   const renderer = new GameRenderer(game);
   gameInputOptions.appendChild(renderer.candidateOption());

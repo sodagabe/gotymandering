@@ -14,8 +14,8 @@
   </head>
   <body class="container">
     <h1>GOTYMANDERING</h1>
-    <form class="col-xl-6 mb-3">
-      <fieldset>
+    <section class="row mb-3">
+      <div class="col-xl-6">
         <input
           class="form-control"
           list="game-input-options"
@@ -23,12 +23,17 @@
           placeholder="Type to search..."
         />
         <datalist id="game-input-options"></datalist>
-      </fieldset>
-    </form>
+      </div>
+      <div class="col">
+        <div class="row justify-content-end">
+          <div class="d-grid col-4">
+            <button class="btn btn-secondary" id="btn-delete-all">
+              <i class="bi bi-trash3 me-2"></i><span>Delete all</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
     <section id="goty-list" class="row row-cols-1 g-3"></section>
-    <section
-      id="candidates"
-      class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3"
-    ></section>
   </body>
 </html>
