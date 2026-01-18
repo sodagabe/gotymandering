@@ -12,8 +12,22 @@
     ></script>
     <script src="./js/main.js" defer></script>
   </head>
-  <body>
+  <body class="container">
     <h1>GOTYMANDERING</h1>
-    <section id="candidates"></section>
+    <form class="col-6 mb-3">
+      <fieldset>
+        <input
+          class="form-control"
+          list="game-input-options"
+          id="game-input"
+          placeholder="Type to search..."
+        />
+        <datalist id="game-input-options"></datalist>
+      </fieldset>
+    </form>
+    <section
+      id="candidates"
+      class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3"
+    ></section>
   </body>
 </html>
