@@ -3420,7 +3420,26 @@ class Game {
   }
 
   get releaseDate() {
-    return `${this.#releaseDate.toLocaleDateString()}`;
+    const formatter = new Intl.DateTimeFormat(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+    const values = formatter.formatToParts(this.#releaseDate);
+    const releaseDate = values
+      .map(({ type, value }) => {
+        switch (type) {
+          case "month":
+            return value;
+          case "day":
+            return ` ${value}`;
+
+          case "year":
+            return `, ${value}`;
+        }
+      })
+      .join("");
+    return releaseDate;
   }
 }
 
