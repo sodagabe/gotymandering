@@ -3618,10 +3618,15 @@ class GameRenderer {
 class GameListRenderer {
   #games;
   #parentElement;
+  #footerElement;
+  #avgScoreElement;
 
-  constructor(games, parentElement) {
+  constructor(games, parentElement, footerElement) {
     this.#games = games;
     this.#parentElement = parentElement;
+    this.#footerElement = footerElement;
+    this.#avgScoreElement =
+      this.#footerElement.querySelector("#span-avg-score");
   }
 
   render(avgScore = 0, newList = null) {
@@ -3632,20 +3637,29 @@ class GameListRenderer {
       const gameRender = gameRenderer.listCard();
       this.#parentElement.appendChild(gameRender);
     }
-    avgScoreSpan.textContent = avgScore;
+    const needsFooter = this.#games.length > 1;
+    const utilityClass = "d-none";
+    if (needsFooter) {
+      this.#footerElement.classList.remove(utilityClass);
+      this.#avgScoreElement.textContent = avgScore;
+    } else {
+      this.#footerElement.classList.add(utilityClass);
+    }
   }
 }
 
 class GOTYList {
   #controller;
-  #element;
   #renderer;
 
-  constructor(listElement) {
+  constructor(listElement, footerElement) {
     const savedList = StorageController.loadGameList() ?? [];
     this.#controller = new OrderedListController(savedList);
-    this.#element = listElement;
-    this.#renderer = new GameListRenderer(this.games, this.#element);
+    this.#renderer = new GameListRenderer(
+      this.games,
+      listElement,
+      footerElement,
+    );
     this.#renderer.render(this.avgScore);
   }
 
@@ -3680,14 +3694,14 @@ const gameInput = document.querySelector("#game-input");
 const gameInputOptions = document.querySelector("#game-input-options");
 const listSection = document.querySelector("#goty-list");
 const deleteAllBtn = document.querySelector("#btn-delete-all");
-const avgScoreSpan = document.querySelector("#span-avg-score");
+const listFooterDiv = document.querySelector("#div-list-footer");
 
 // Load JSON database into objects
 const games = [];
 Game.loadDB(games);
 
 // Start main controller
-const gotyList = new GOTYList(listSection);
+const gotyList = new GOTYList(listSection, listFooterDiv);
 
 /* ------------------------ */
 /* Events                   */
