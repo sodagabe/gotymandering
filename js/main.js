@@ -3424,6 +3424,19 @@ class Game {
   }
 }
 
+class EventManager {
+  static gameDeleteButton(button, game) {
+    const attributeName = "data-game-id";
+    button.setAttribute(attributeName, game.id);
+    button.onclick = (e) => {
+      const gameIDString = button.getAttribute(attributeName);
+      const gameID = parseInt(gameIDString);
+      gotyList.deleteGame(gameID);
+    };
+    return button;
+  }
+}
+
 class StorageController {
   static #gameListKey = "gameList";
 
@@ -3489,6 +3502,13 @@ class OrderedListController {
     this.#orderedList = [];
     StorageController.saveGameList();
   }
+
+  deleteGame(gameID) {
+    const game = games.find((game) => game.id === gameID);
+    this.#elements.delete(game);
+    this.#orderedList = this.#orderedList.filter((game) => game.id !== gameID);
+    StorageController.saveGameList(this.list);
+  }
 }
 
 class IconRenderer {
@@ -3533,7 +3553,8 @@ class GameRenderer {
     cardBody.appendChild(cardTitle);
     cardBody.appendChild(cardGenres);
     cardBody.appendChild(cardReleaseDate);
-    const trashIcon = IconRenderer.button("trash3");
+    let trashIcon = IconRenderer.button("trash3");
+    EventManager.gameDeleteButton(trashIcon, this.game);
     cardBody.appendChild(trashIcon);
     card.appendChild(cardBody);
     cardContainer.appendChild(card);
@@ -3595,6 +3616,11 @@ class GOTYList {
 
   clear() {
     this.#controller.clear();
+    this.#renderer.render(this.games);
+  }
+
+  deleteGame(gameID) {
+    this.#controller.deleteGame(gameID);
     this.#renderer.render(this.games);
   }
 }
