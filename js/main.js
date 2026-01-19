@@ -3518,12 +3518,25 @@ class IconRenderer {
     return icon;
   }
 
-  static button(name) {
+  static _button(name, variantBase, danger = false, variant = null) {
     const icon = this.icon(name);
     const button = document.createElement("button");
-    button.className = "btn btn-light";
     button.appendChild(icon);
+    button.className = "btn";
+    let btnVariant = variant ?? "primary";
+    if (danger) {
+      btnVariant = "danger";
+    }
+    button.classList.add(`${variantBase}-${btnVariant}`);
     return button;
+  }
+
+  static solidButton(name, danger = false, variant = null) {
+    return this._button(name, "btn", danger, variant);
+  }
+
+  static outlineButton(name, danger = false, variant = null) {
+    return this._button(name, "btn-outline", danger, variant);
   }
 }
 
@@ -3553,7 +3566,7 @@ class GameRenderer {
     cardBody.appendChild(cardTitle);
     cardBody.appendChild(cardGenres);
     cardBody.appendChild(cardReleaseDate);
-    let trashIconButton = IconRenderer.button("trash3");
+    let trashIconButton = IconRenderer.outlineButton("trash3", true);
     EventManager.gameDeleteButton(trashIconButton, this.game);
     trashIconButton.classList.add("btn--delete");
     cardBody.appendChild(trashIconButton);
