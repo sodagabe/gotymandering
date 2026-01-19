@@ -16,9 +16,9 @@
   "main": "main.js",
   "scripts": {
     "prepare": "husky",
-    "sass": "sass --watch ./scss/main.scss ./css/main.css",
+    "sass": "sass --style=compressed ./scss/main.scss ./css/main.css",
     "watch": "sass --watch ./scss/main.scss ./css/main.css",
-    "prefix": "postcss public/css/style.css --replace --use autoprefixer -b 'defaults' --no-map",
+    "prefix": "postcss ./css/main.css --replace --use autoprefixer -b 'defaults' --no-map",
     "compile": "npm run sass && npm run prefix"
   },
   "devDependencies": {
