@@ -1,4 +1,10 @@
+@use "../utilities" as u;
+
 .card {
+  border: none;
+  .card-title {
+    font-weight: 700;
+  }
   .card-subtitle {
     margin-bottom: 0.5rem;
   }
@@ -13,6 +19,13 @@
   &:hover {
     .btn--delete {
       display: inline;
+    }
+  }
+
+  &--game {
+    background: u.get-primary(200);
+    .card-title {
+      color: u.get-primary(700);
     }
   }
 }

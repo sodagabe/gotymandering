@@ -1,0 +1,16 @@
+@use "../utilities" as u;
+
+$body-background-color: u.get-primary(100);
+$body-color: u.get-primary(900);
+
+body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: $body-background-color;
+  color: $body-color;
+}
+
+p {
+  margin: 0;
+}
