@@ -3597,7 +3597,7 @@ class GameRenderer {
     cardBody.appendChild(cardTitle);
     cardBody.appendChild(cardGenres);
     cardBody.appendChild(cardReleaseDate);
-    let trashIconButton = IconRenderer.outlineButton("trash3", true);
+    let trashIconButton = IconRenderer.outlineButton("x-lg", true);
     EventManager.gameDeleteButton(trashIconButton, this.game);
     trashIconButton.classList.add("btn--delete");
     cardBody.appendChild(trashIconButton);
