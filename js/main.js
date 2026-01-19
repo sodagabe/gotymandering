@@ -3367,7 +3367,9 @@ const GENRES_DB = [
   },
 ];
 
-const games = [];
+/* ------------------------ */
+/* Classes                  */
+/* ------------------------ */
 
 class Game {
   #id;
@@ -3422,6 +3424,19 @@ class Game {
   }
 }
 
+class EventManager {
+  static gameDeleteButton(button, game) {
+    const attributeName = "data-game-id";
+    button.setAttribute(attributeName, game.id);
+    button.onclick = (e) => {
+      const gameIDString = button.getAttribute(attributeName);
+      const gameID = parseInt(gameIDString);
+      gotyList.deleteGame(gameID);
+    };
+    return button;
+  }
+}
+
 class StorageController {
   static #gameListKey = "gameList";
 
@@ -3437,7 +3452,7 @@ class StorageController {
     return gameList;
   }
 
-  static saveGameList(gameList) {
+  static saveGameList(gameList = []) {
     const idList = gameList.map((game) => game.id);
     const JSONList = JSON.stringify(idList);
     localStorage.setItem(this.#gameListKey, JSONList);
@@ -3481,6 +3496,48 @@ class OrderedListController {
     }
     return updated;
   }
+
+  clear() {
+    this.#elements.clear();
+    this.#orderedList = [];
+    StorageController.saveGameList();
+  }
+
+  deleteGame(gameID) {
+    const game = games.find((game) => game.id === gameID);
+    this.#elements.delete(game);
+    this.#orderedList = this.#orderedList.filter((game) => game.id !== gameID);
+    StorageController.saveGameList(this.list);
+  }
+}
+
+class IconRenderer {
+  static icon(name) {
+    const icon = document.createElement("i");
+    icon.className = `bi bi-${name}`;
+    return icon;
+  }
+
+  static _button(name, variantBase, danger = false, variant = null) {
+    const icon = this.icon(name);
+    const button = document.createElement("button");
+    button.appendChild(icon);
+    button.className = "btn";
+    let btnVariant = variant ?? "primary";
+    if (danger) {
+      btnVariant = "danger";
+    }
+    button.classList.add(`${variantBase}-${btnVariant}`);
+    return button;
+  }
+
+  static solidButton(name, danger = false, variant = null) {
+    return this._button(name, "btn", danger, variant);
+  }
+
+  static outlineButton(name, danger = false, variant = null) {
+    return this._button(name, "btn-outline", danger, variant);
+  }
 }
 
 class GameRenderer {
@@ -3509,6 +3566,10 @@ class GameRenderer {
     cardBody.appendChild(cardTitle);
     cardBody.appendChild(cardGenres);
     cardBody.appendChild(cardReleaseDate);
+    let trashIconButton = IconRenderer.outlineButton("trash3", true);
+    EventManager.gameDeleteButton(trashIconButton, this.game);
+    trashIconButton.classList.add("btn--delete");
+    cardBody.appendChild(trashIconButton);
     card.appendChild(cardBody);
     cardContainer.appendChild(card);
     return cardContainer;
@@ -3566,19 +3627,36 @@ class GOTYList {
       this.#renderer.render(this.games);
     }
   }
-}
 
-//Load JSON database into objects
-Game.loadDB(games);
+  clear() {
+    this.#controller.clear();
+    this.#renderer.render(this.games);
+  }
+
+  deleteGame(gameID) {
+    this.#controller.deleteGame(gameID);
+    this.#renderer.render(this.games);
+  }
+}
 
 // Elements
 const gameInput = document.querySelector("#game-input");
 const gameInputOptions = document.querySelector("#game-input-options");
 const listSection = document.querySelector("#goty-list");
-const candidatesSection = document.querySelector("#candidates");
+const deleteAllBtn = document.querySelector("#btn-delete-all");
 
+// Load JSON database into objects
+const games = [];
+Game.loadDB(games);
+
+// Start main controller
 const gotyList = new GOTYList(listSection);
 
+/* ------------------------ */
+/* Events                   */
+/* ------------------------ */
+
+// + add game to list
 gameInput.addEventListener("input", (e) => {
   const selectedOption = gameInputOptions.options.namedItem(e.target.value);
   if (selectedOption) {
@@ -3588,6 +3666,10 @@ gameInput.addEventListener("input", (e) => {
   }
 });
 
+// + delete all (clear list)
+deleteAllBtn.onclick = () => gotyList.clear();
+
+// Populate input's datalist with candidates
 for (let game of games) {
   const renderer = new GameRenderer(game);
   gameInputOptions.appendChild(renderer.candidateOption());
