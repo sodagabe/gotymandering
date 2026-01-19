@@ -3476,6 +3476,18 @@ class OrderedListController {
     return this.#elements.size;
   }
 
+  get avgScore() {
+    let games = this.#orderedList;
+    const rawAvg = games.reduce((accumulator, value, i) => {
+      let sum = accumulator + value.rating;
+      if (games.length && i === games.length - 1) {
+        sum /= games.length;
+      }
+      return sum;
+    }, 0);
+    return rawAvg.toFixed(2);
+  }
+
   add(game, order = 1) {
     let updated = false;
     const currentLength = this.length;
@@ -3593,7 +3605,7 @@ class GameListRenderer {
     this.#parentElement = parentElement;
   }
 
-  render(newList = null) {
+  render(avgScore = 0, newList = null) {
     this.#games = newList ?? this.#games;
     this.#parentElement.textContent = "";
     for (const game of this.#games) {
@@ -3601,6 +3613,7 @@ class GameListRenderer {
       const gameRender = gameRenderer.listCard();
       this.#parentElement.appendChild(gameRender);
     }
+    avgScoreSpan.textContent = avgScore;
   }
 }
 
@@ -3614,28 +3627,32 @@ class GOTYList {
     this.#controller = new OrderedListController(savedList);
     this.#element = listElement;
     this.#renderer = new GameListRenderer(this.games, this.#element);
-    this.#renderer.render();
+    this.#renderer.render(this.avgScore);
   }
 
   get games() {
     return this.#controller.list;
   }
 
+  get avgScore() {
+    return this.#controller.avgScore;
+  }
+
   add(game, order = 1) {
     const updated = this.#controller.add(game, order);
     if (updated) {
-      this.#renderer.render(this.games);
+      this.#renderer.render(this.avgScore, this.games);
     }
   }
 
   clear() {
     this.#controller.clear();
-    this.#renderer.render(this.games);
+    this.#renderer.render(undefined, this.games);
   }
 
   deleteGame(gameID) {
     this.#controller.deleteGame(gameID);
-    this.#renderer.render(this.games);
+    this.#renderer.render(this.avgScore, this.games);
   }
 }
 
@@ -3644,6 +3661,7 @@ const gameInput = document.querySelector("#game-input");
 const gameInputOptions = document.querySelector("#game-input-options");
 const listSection = document.querySelector("#goty-list");
 const deleteAllBtn = document.querySelector("#btn-delete-all");
+const avgScoreSpan = document.querySelector("#span-avg-score");
 
 // Load JSON database into objects
 const games = [];
