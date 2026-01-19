@@ -1,0 +1,12 @@
+@use "sass:map";
+@use "variables" as *;
+
+// Primary color getter
+@function get-primary($name) {
+  @return map.get($primary, $name);
+}
+
+//Gray getter
+@function get-gray($name) {
+  @return map.get($gray, $name);
+}

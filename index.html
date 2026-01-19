@@ -13,27 +13,33 @@
     <script src="./js/main.js" defer></script>
   </head>
   <body class="container">
-    <h1>GOTYMANDERING</h1>
-    <section class="row mb-3">
+    <h1 class="display-2">GOTYMANDERING</h1>
+    <section class="row">
       <div class="col-xl-6">
         <input
-          class="form-control"
+          class="form-control form-control-lg"
           list="game-input-options"
           id="game-input"
-          placeholder="Type to search..."
+          placeholder="Search..."
         />
         <datalist id="game-input-options"></datalist>
       </div>
       <div class="col">
         <div class="row justify-content-end">
-          <div class="d-grid col-4">
-            <button class="btn btn-outline-danger" id="btn-delete-all">
-              <i class="bi bi-trash3 me-2"></i><span>Delete all</span>
-            </button>
-          </div>
+          <div class="d-grid col-4"></div>
         </div>
       </div>
     </section>
     <section id="goty-list" class="row row-cols-1 g-3"></section>
+    <div class="d-flex flex-column flex-md-row gap-4 align-items-center">
+      <p class="flex-fill">
+        Average score: <span id="span-avg-score">N/A</span>
+      </p>
+      <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+        <button class="btn btn-lg btn-outline-danger" id="btn-delete-all">
+          <i class="bi bi-trash3 me-2"></i><span>Delete all</span>
+        </button>
+      </div>
+    </div>
   </body>
 </html>

@@ -1,7 +1,8 @@
-$font-family-base: Tahoma;
-
 // Include functions first
 @import "../../node_modules/bootstrap/scss/functions";
+
+// Default variable overrides
+@import "../vendors-extensions/bootstrap";
 
 // Required
 @import "../../node_modules/bootstrap/scss/variables";

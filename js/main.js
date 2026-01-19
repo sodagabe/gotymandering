@@ -3555,9 +3555,9 @@ class GameRenderer {
     const cardGenres = document.createElement("h6");
     const cardReleaseDate = document.createElement("p");
     cardContainer.className = "col";
-    card.className = "card";
+    card.className = "card card--game";
     cardBody.className = "card-body";
-    cardTitle.className = "card-title fw-bold text-truncate";
+    cardTitle.className = "card-title text-truncate";
     cardTitle.textContent = this.game.name;
     cardGenres.className = "card-subtitle text-secondary small text-truncate";
     cardGenres.textContent = this.game.genres;
