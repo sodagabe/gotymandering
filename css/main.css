@@ -8312,8 +8312,17 @@ textarea.form-control-lg {
     display: none !important;
   }
 }
-.card-subtitle {
+.card .card-subtitle {
   margin-bottom: 0.5rem;
+}
+.card .btn--delete {
+  display: none;
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+}
+.card:hover .btn--delete {
+  display: inline;
 }
 
 /*# sourceMappingURL=main.css.map */
