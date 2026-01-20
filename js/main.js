@@ -22,7 +22,7 @@ class DataManager {
 
   static async fetchGenres() {
     try {
-      const url = "/data/genres.json";
+      const url = "./data/genres.json";
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Response status: ${response.status}`);
@@ -40,7 +40,7 @@ class DataManager {
   static async fetchDB(games) {
     try {
       this.fetchGenres();
-      const url = "/data/games.json";
+      const url = "./data/games.json";
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Response status: ${response.status}`);
