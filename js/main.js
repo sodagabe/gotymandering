@@ -37,9 +37,8 @@ class DataManager {
     }
   }
 
-  static async fetchDB(games) {
+  static async fetchGames(games) {
     try {
-      this.fetchGenres();
       const url = "./data/games.json";
       const response = await fetch(url);
       if (!response.ok) {
@@ -53,6 +52,11 @@ class DataManager {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  static async fetchDB(games) {
+    await this.fetchGenres();
+    await this.fetchGames(games);
   }
 }
 
