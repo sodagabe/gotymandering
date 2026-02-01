@@ -153,6 +153,7 @@ class EventManager {
         const selectedGameID = parseInt(selectedOption.id);
         const game = games.find((game) => game.id === selectedGameID);
         gotyList.add(game);
+        gameInput.value = "";
       }
     });
   }
