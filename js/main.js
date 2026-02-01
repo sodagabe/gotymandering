@@ -3,6 +3,16 @@
 /* ------------------------ */
 
 class DataManager {
+  static #apiBaseURL = "https://api.npoint.io/";
+  static #apiURIs = {
+    games: "32bb44811fc626c1f75e",
+    genres: "cce6a933a8c2d67c4b41",
+  };
+
+  static buildURL(uri) {
+    return this.#apiBaseURL + uri;
+  }
+
   static buildGameObject(gameRecord) {
     const name = gameRecord.name;
     const releaseDate = new Date(gameRecord.first_release_date * 1000);
@@ -20,43 +30,41 @@ class DataManager {
     return new Genre(genreRecord.id, genreRecord.name);
   }
 
-  static async fetchGenres() {
+  static async fetchData(uri, f) {
     try {
-      const url = "./data/genres.json";
+      const url = this.buildURL(uri);
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Response status: ${response.status}`);
       }
       const jsonDB = await response.json();
-      for (let genreRecord of jsonDB) {
+      f(jsonDB);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  static async fetchGenres() {
+    await this.fetchData(this.#apiURIs.genres, (res) => {
+      for (let genreRecord of res) {
         const genre = this.buildGenreObject(genreRecord);
         genres.push(genre);
       }
-    } catch (e) {
-      console.error(e);
-    }
+    });
   }
 
-  static async fetchGames(games) {
-    try {
-      const url = "./data/games.json";
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Response status: ${response.status}`);
-      }
-      const jsonDB = await response.json();
-      for (let gameRecord of jsonDB) {
+  static async fetchGames() {
+    await this.fetchData(this.#apiURIs.games, (res) => {
+      for (let gameRecord of res) {
         const game = this.buildGameObject(gameRecord);
         games.push(game);
       }
-    } catch (e) {
-      console.error(e);
-    }
+    });
   }
 
-  static async fetchDB(games) {
+  static async fetchDB() {
     await this.fetchGenres();
-    await this.fetchGames(games);
+    await this.fetchGames();
   }
 }
 
@@ -403,7 +411,7 @@ class GOTYList {
 const genres = [];
 const games = [];
 let gotyList;
-DataManager.fetchDB(games).then(() => {
+DataManager.fetchDB().then(() => {
   // Start main controller
   const listSection = document.querySelector("#goty-list");
   const listFooterDiv = document.querySelector("#div-list-footer");
