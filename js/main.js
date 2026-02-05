@@ -299,7 +299,7 @@ class GameRenderer {
     const cardTitle = document.createElement("h5");
     const cardGenres = document.createElement("h6");
     const cardReleaseDate = document.createElement("p");
-    cardContainer.className = "col";
+    cardContainer.className = "card-container sortable col";
     card.className = "card card--game";
     cardBody.className = "card-body";
     cardTitle.className = "card-title text-truncate";
@@ -415,6 +415,15 @@ let gotyList;
 DataManager.fetchDB().then(() => {
   // Start main controller
   const listSection = document.querySelector("#goty-list");
+  Sortable.create(listSection, {
+    animation: 120,
+    direction: "vertical",
+    ghostClass: "sortable--ghost",
+    chosenClass: "sortable--chosen",
+    dragClass: "sortable--drag",
+    forceAutoScrollFallback: true,
+    scrollSpeed: 50,
+  });
   const listFooterDiv = document.querySelector("#div-list-footer");
   gotyList = new GOTYList(listSection, listFooterDiv);
   // Populate input's datalist with candidates
@@ -427,4 +436,4 @@ DataManager.fetchDB().then(() => {
 });
 
 // Load events
-const eventManager = new EventManager();
+new EventManager();
