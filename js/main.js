@@ -304,7 +304,7 @@ class GameRenderer {
     cardBody.className = "card-body";
     cardTitle.className = "card-title text-truncate";
     cardTitle.textContent = this.game.name;
-    cardGenres.className = "card-subtitle text-secondary small text-truncate";
+    cardGenres.className = "card-subtitle small text-truncate";
     cardGenres.textContent = this.game.genres;
     cardReleaseDate.className = "card-text small";
     cardReleaseDate.textContent = this.game.releaseDate;
@@ -421,7 +421,8 @@ DataManager.fetchDB().then(() => {
     ghostClass: "sortable--ghost",
     chosenClass: "sortable--chosen",
     dragClass: "sortable--drag",
-    forceAutoScrollFallback: true,
+    fallbackClass: "sortable--fallback",
+    forceFallback: true,
     scrollSpeed: 50,
   });
   const listFooterDiv = document.querySelector("#div-list-footer");
