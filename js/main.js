@@ -1,4 +1,15 @@
 /* ------------------------ */
+/* Constants                */
+/* ------------------------ */
+const CLASS_NAMES = {
+  gameCard: "card--game",
+};
+
+const ATTRIBUTE_NAMES = {
+  gameID: "data-game-id",
+};
+
+/* ------------------------ */
 /* Classes                  */
 /* ------------------------ */
 
@@ -139,6 +150,19 @@ class Game {
   }
 }
 
+class DragNDropInterface {
+  static updatePosition(evt) {
+    let gameCard = evt.item;
+    const className = CLASS_NAMES.gameCard;
+    while (!gameCard.classList.contains(className)) {
+      gameCard = gameCard.firstElementChild;
+    }
+    const oldIndex = evt.oldDraggableIndex;
+    const newIndex = evt.newDraggableIndex;
+    EventManager.updatePosition(gameCard, oldIndex, newIndex);
+  }
+}
+
 class EventManager {
   constructor() {
     // Clear list
@@ -159,14 +183,20 @@ class EventManager {
   }
 
   static gameDeleteButton(button, game) {
-    const attributeName = "data-game-id";
+    const attributeName = ATTRIBUTE_NAMES.gameID;
     button.setAttribute(attributeName, game.id);
     button.onclick = (e) => {
       const gameIDString = button.getAttribute(attributeName);
       const gameID = parseInt(gameIDString);
-      gotyList.deleteGame(gameID);
+      gotyList.delete(gameID);
     };
     return button;
+  }
+
+  static updatePosition(gameCard, oldIndex, newIndex) {
+    const gameIDString = gameCard.getAttribute(ATTRIBUTE_NAMES.gameID);
+    const gameID = parseInt(gameIDString);
+    gotyList.updatePosition(gameID, oldIndex, newIndex);
   }
 }
 
@@ -221,25 +251,43 @@ class OrderedListController {
     return rawAvg.toFixed(2);
   }
 
+  #insert(game, index) {
+    if (index <= 0) {
+      this.#orderedList.unshift(game);
+    } else if (index >= this.#orderedList.length) {
+      this.#orderedList.push(game);
+    } else {
+      const listTail = this.#orderedList.splice(index);
+      this.#orderedList.push(game);
+      this.#orderedList.push(...listTail);
+    }
+  }
+
+  #remove(gameToRemove) {
+    this.#orderedList = this.#orderedList.filter(
+      (game) => game !== gameToRemove,
+    );
+  }
+
   add(game, order = 1) {
     let updated = false;
-    const currentLength = this.length;
-    this.#elements.add(game);
-    const newLength = this.length;
-    if (currentLength != newLength) {
-      if (order < 1) {
-        this.#orderedList.unshift(game);
-      } else if (order > newLength) {
-        this.#orderedList.push(game);
-      } else {
-        const listTail = this.#orderedList.splice(order - 1);
-        this.#orderedList.push(game);
-        this.#orderedList.push(...listTail);
-      }
+    if (!this.#elements.has(game)) {
+      this.#elements.add(game);
+      this.#insert(game, order - 1);
       updated = true;
       StorageController.saveGameList(this.#orderedList);
     }
     return updated;
+  }
+
+  updatePosition(gameID, oldIndex, newIndex) {
+    const game = this.#orderedList[oldIndex];
+    if (game.id !== gameID) {
+      throw new Error("Position mismatch between controller and DOM");
+    }
+    this.#remove(game);
+    this.#insert(game, newIndex);
+    StorageController.saveGameList(this.#orderedList);
   }
 
   clear() {
@@ -248,10 +296,10 @@ class OrderedListController {
     StorageController.saveGameList();
   }
 
-  deleteGame(gameID) {
+  delete(gameID) {
     const game = games.find((game) => game.id === gameID);
     this.#elements.delete(game);
-    this.#orderedList = this.#orderedList.filter((game) => game.id !== gameID);
+    this.#remove(game);
     StorageController.saveGameList(this.list);
   }
 }
@@ -299,12 +347,13 @@ class GameRenderer {
     const cardTitle = document.createElement("h5");
     const cardGenres = document.createElement("h6");
     const cardReleaseDate = document.createElement("p");
-    cardContainer.className = "col";
-    card.className = "card card--game";
+    cardContainer.className = "card-container sortable col";
+    card.className = `card ${CLASS_NAMES.gameCard}`;
+    card.setAttribute(ATTRIBUTE_NAMES.gameID, this.game.id);
     cardBody.className = "card-body";
     cardTitle.className = "card-title text-truncate";
     cardTitle.textContent = this.game.name;
-    cardGenres.className = "card-subtitle text-secondary small text-truncate";
+    cardGenres.className = "card-subtitle small text-truncate";
     cardGenres.textContent = this.game.genres;
     cardReleaseDate.className = "card-text small";
     cardReleaseDate.textContent = this.game.releaseDate;
@@ -393,13 +442,17 @@ class GOTYList {
     }
   }
 
+  updatePosition(gameID, oldIndex, newIndex) {
+    this.#controller.updatePosition(gameID, oldIndex, newIndex);
+  }
+
   clear() {
     this.#controller.clear();
     this.#renderer.render(undefined, this.games);
   }
 
-  deleteGame(gameID) {
-    this.#controller.deleteGame(gameID);
+  delete(gameID) {
+    this.#controller.delete(gameID);
     this.#renderer.render(this.avgScore, this.games);
   }
 }
@@ -415,6 +468,19 @@ let gotyList;
 DataManager.fetchDB().then(() => {
   // Start main controller
   const listSection = document.querySelector("#goty-list");
+  Sortable.create(listSection, {
+    animation: 120,
+    direction: "vertical",
+    ghostClass: "sortable--ghost",
+    chosenClass: "sortable--chosen",
+    dragClass: "sortable--drag",
+    fallbackClass: "sortable--fallback",
+    forceFallback: true,
+    scrollSpeed: 50,
+    onEnd: (evt) => {
+      DragNDropInterface.updatePosition(evt);
+    },
+  });
   const listFooterDiv = document.querySelector("#div-list-footer");
   gotyList = new GOTYList(listSection, listFooterDiv);
   // Populate input's datalist with candidates
@@ -427,4 +493,4 @@ DataManager.fetchDB().then(() => {
 });
 
 // Load events
-const eventManager = new EventManager();
+new EventManager();

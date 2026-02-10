@@ -2,30 +2,61 @@
 
 .card {
   border: none;
-  .card-title {
-    font-weight: 700;
-  }
-  .card-subtitle {
-    margin-bottom: 0.5rem;
-  }
 
-  .btn--delete {
-    display: none;
-    position: absolute;
-    right: 1rem;
-    top: 1rem;
-  }
+  .card-body {
+    .card-title {
+      font-weight: 700;
+    }
 
-  &:hover {
-    .btn--delete {
-      display: inline;
+    .card-subtitle {
+      margin-bottom: 0.5rem;
     }
   }
 
   &--game {
     background: u.get-primary(200);
-    .card-title {
-      color: u.get-primary(700);
+
+    .btn--delete {
+      display: none;
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
+    }
+
+    &:hover {
+      .btn--delete {
+        display: inline;
+      }
+    }
+  }
+}
+
+.card-container {
+  &.sortable {
+    cursor: grab;
+
+    &:hover {
+      .card {
+        background: u.get-primary(300);
+      }
+    }
+
+    &.sortable--ghost {
+      opacity: 0;
+    }
+
+    &.sortable--chosen {
+      cursor: grabbing;
+    }
+
+    &.sortable--drag {
+      opacity: 1 !important; // override HTML5 default DnD opacity
+
+      .card {
+        box-shadow: 0 0 2rem hsl(from u.get-primary(800) h s l / 0.7);
+        background: u.get-primary(300);
+        transform: scale(1.03);
+      }
     }
   }
 }
