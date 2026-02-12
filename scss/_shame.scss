@@ -4,8 +4,14 @@ File for quick fixes, hacks and questionable techniques
 https://csswizardry.com/2013/04/shame-css/ 
 */
 
+/*
+Dragged object opacity:
+Default HTML5 drag behavior imposes a level of transparency to the dragged object.
+This lets our SortableJS enabled cards to remain fully opaque while being dragged.
+Hoping to find an alternative that doesn't require !important
+*/
 .card-container {
   &.sortable--drag {
-    opacity: 1 !important; // override HTML5 default DnD opacity
+    opacity: 1 !important;
   }
 }
