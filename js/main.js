@@ -3,6 +3,9 @@ import Swal from "https://cdn.skypack.dev/sweetalert2";
 /* ------------------------ */
 /* Constants                */
 /* ------------------------ */
+const GENRES = [];
+const GAMES = [];
+
 const CLASS_NAMES = {
   gameCard: "card--game",
 };
@@ -11,75 +14,22 @@ const ATTRIBUTE_NAMES = {
   gameID: "data-game-id",
 };
 
+const SORTABLE_CONFIG = {
+  animation: 120,
+  direction: "vertical",
+  ghostClass: "sortable--ghost",
+  chosenClass: "sortable--chosen",
+  dragClass: "sortable--drag",
+  fallbackClass: "sortable--fallback",
+  forceFallback: true,
+  scrollSpeed: 50,
+};
+
 /* ------------------------ */
 /* Classes                  */
 /* ------------------------ */
 
-class DataManager {
-  static #apiBaseURL = "https://api.npoint.io/";
-  static #apiURIs = {
-    games: "32bb44811fc626c1f75e",
-    genres: "cce6a933a8c2d67c4b41",
-  };
-
-  static buildURL(uri) {
-    return this.#apiBaseURL + uri;
-  }
-
-  static buildGameObject(gameRecord) {
-    const name = gameRecord.name;
-    const releaseDate = new Date(gameRecord.first_release_date * 1000);
-    let gameGenres = [];
-    if (gameRecord.genres) {
-      gameGenres = gameRecord.genres.map((genreID) => {
-        return genres.find((genre) => genre.id === genreID).name;
-      });
-    }
-    const rating = gameRecord.total_rating;
-    return new Game(gameRecord.id, name, releaseDate, gameGenres, rating);
-  }
-
-  static buildGenreObject(genreRecord) {
-    return new Genre(genreRecord.id, genreRecord.name);
-  }
-
-  static async fetchData(uri, f) {
-    try {
-      const url = this.buildURL(uri);
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Response status: ${response.status}`);
-      }
-      const jsonDB = await response.json();
-      f(jsonDB);
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  static async fetchGenres() {
-    await this.fetchData(this.#apiURIs.genres, (res) => {
-      for (let genreRecord of res) {
-        const genre = this.buildGenreObject(genreRecord);
-        genres.push(genre);
-      }
-    });
-  }
-
-  static async fetchGames() {
-    await this.fetchData(this.#apiURIs.games, (res) => {
-      for (let gameRecord of res) {
-        const game = this.buildGameObject(gameRecord);
-        games.push(game);
-      }
-    });
-  }
-
-  static async fetchDB() {
-    await this.fetchGenres();
-    await this.fetchGames();
-  }
-}
+/* Models & data */
 
 class Genre {
   #id;
@@ -152,6 +102,74 @@ class Game {
   }
 }
 
+class DataManager {
+  static #apiBaseURL = "https://api.npoint.io/";
+  static #apiURIs = {
+    games: "32bb44811fc626c1f75e",
+    genres: "cce6a933a8c2d67c4b41",
+  };
+
+  static buildURL(uri) {
+    return this.#apiBaseURL + uri;
+  }
+
+  static buildGameObject(gameRecord) {
+    const name = gameRecord.name;
+    const releaseDate = new Date(gameRecord.first_release_date * 1000);
+    let gameGenres = [];
+    if (gameRecord.genres) {
+      gameGenres = gameRecord.genres.map((genreID) => {
+        return GENRES.find((genre) => genre.id === genreID).name;
+      });
+    }
+    const rating = gameRecord.total_rating;
+    return new Game(gameRecord.id, name, releaseDate, gameGenres, rating);
+  }
+
+  static buildGenreObject(genreRecord) {
+    return new Genre(genreRecord.id, genreRecord.name);
+  }
+
+  static async fetchData(uri, f) {
+    try {
+      const url = this.buildURL(uri);
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Response status: ${response.status}`);
+      }
+      const jsonDB = await response.json();
+      f(jsonDB);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  static async fetchGenres() {
+    await this.fetchData(this.#apiURIs.genres, (res) => {
+      for (let genreRecord of res) {
+        const genre = this.buildGenreObject(genreRecord);
+        GENRES.push(genre);
+      }
+    });
+  }
+
+  static async fetchGames() {
+    await this.fetchData(this.#apiURIs.games, (res) => {
+      for (let gameRecord of res) {
+        const game = this.buildGameObject(gameRecord);
+        GAMES.push(game);
+      }
+    });
+  }
+
+  static async fetchDB() {
+    await this.fetchGenres();
+    await this.fetchGames();
+  }
+}
+
+/* Interfaces */
+
 class ModalInterface {
   static #fireSwal({
     swalObject,
@@ -219,54 +237,7 @@ class DragNDropInterface {
   }
 }
 
-class EventManager {
-  constructor() {
-    // Clear list
-    const clearListBtn = document.querySelector("#btn-clear-list");
-    clearListBtn.onclick = () => {
-      ModalInterface.delete({
-        title: "Clear your list?",
-        text: "This will remove every game you've added",
-        confirmedFunction: () => gotyList.clear(),
-      });
-    };
-    // Add game to list
-    const gameInput = document.querySelector("#game-input");
-    const gameInputOptions = document.querySelector("#game-input-options");
-    gameInput.addEventListener("input", (e) => {
-      const selectedOption = gameInputOptions.options.namedItem(e.target.value);
-      if (selectedOption) {
-        const selectedGameID = parseInt(selectedOption.id);
-        const game = games.find((game) => game.id === selectedGameID);
-        gotyList.add(game);
-        gameInput.value = "";
-      }
-    });
-  }
-
-  static gameDeleteButton(button, game) {
-    const attributeName = ATTRIBUTE_NAMES.gameID;
-    button.setAttribute(attributeName, game.id);
-    button.onclick = () => {
-      ModalInterface.delete({
-        title: `Delete ${game.name}?`,
-        text: "You will have to re-add it manually",
-        confirmedFunction: () => {
-          const gameIDString = button.getAttribute(attributeName);
-          const gameID = parseInt(gameIDString);
-          gotyList.delete(gameID);
-        },
-      });
-    };
-    return button;
-  }
-
-  static updatePosition(gameCard, oldIndex, newIndex) {
-    const gameIDString = gameCard.getAttribute(ATTRIBUTE_NAMES.gameID);
-    const gameID = parseInt(gameIDString);
-    gotyList.updatePosition(gameID, oldIndex, newIndex);
-  }
-}
+/* Controllers */
 
 class StorageController {
   static #gameListKey = "gameList";
@@ -277,7 +248,7 @@ class StorageController {
     const JSONList = JSON.parse(stringList);
     if (JSONList) {
       gameList = JSONList.map((gameID) =>
-        games.find((game) => game.id === gameID),
+        GAMES.find((game) => game.id === gameID),
       );
     }
     return gameList;
@@ -365,12 +336,14 @@ class OrderedListController {
   }
 
   delete(gameID) {
-    const game = games.find((game) => game.id === gameID);
+    const game = GAMES.find((game) => game.id === gameID);
     this.#elements.delete(game);
     this.#remove(game);
     StorageController.saveGameList(this.list);
   }
 }
+
+/* Renderers */
 
 class IconRenderer {
   static icon(name) {
@@ -480,6 +453,59 @@ class GameListRenderer {
   }
 }
 
+/* Misc */
+
+class EventManager {
+  constructor() {
+    // Clear list
+    const clearListBtn = document.querySelector("#btn-clear-list");
+    clearListBtn.onclick = () => {
+      ModalInterface.delete({
+        title: "Clear your list?",
+        text: "This will remove every game you've added",
+        confirmedFunction: () => gotyList.clear(),
+      });
+    };
+    // Add game to list
+    const gameInput = document.querySelector("#game-input");
+    const gameInputOptions = document.querySelector("#game-input-options");
+    gameInput.addEventListener("input", (e) => {
+      const selectedOption = gameInputOptions.options.namedItem(e.target.value);
+      if (selectedOption) {
+        const selectedGameID = parseInt(selectedOption.id);
+        const game = GAMES.find((game) => game.id === selectedGameID);
+        gotyList.add(game);
+        gameInput.value = "";
+      }
+    });
+  }
+
+  static gameDeleteButton(button, game) {
+    const attributeName = ATTRIBUTE_NAMES.gameID;
+    button.setAttribute(attributeName, game.id);
+    button.onclick = () => {
+      ModalInterface.delete({
+        title: `Delete ${game.name}?`,
+        text: "You will have to re-add it manually",
+        confirmedFunction: () => {
+          const gameIDString = button.getAttribute(attributeName);
+          const gameID = parseInt(gameIDString);
+          gotyList.delete(gameID);
+        },
+      });
+    };
+    return button;
+  }
+
+  static updatePosition(gameCard, oldIndex, newIndex) {
+    const gameIDString = gameCard.getAttribute(ATTRIBUTE_NAMES.gameID);
+    const gameID = parseInt(gameIDString);
+    gotyList.updatePosition(gameID, oldIndex, newIndex);
+  }
+}
+
+/* Main controller */
+
 class GOTYList {
   #controller;
   #renderer;
@@ -530,31 +556,23 @@ class GOTYList {
 /* ------------------------ */
 
 // Load JSON database into objects
-const genres = [];
-const games = [];
 let gotyList;
 DataManager.fetchDB().then(() => {
-  // Start main controller
+  // Start Sortable
   const listSection = document.querySelector("#goty-list");
   Sortable.create(listSection, {
-    animation: 120,
-    direction: "vertical",
-    ghostClass: "sortable--ghost",
-    chosenClass: "sortable--chosen",
-    dragClass: "sortable--drag",
-    fallbackClass: "sortable--fallback",
-    forceFallback: true,
-    scrollSpeed: 50,
+    ...SORTABLE_CONFIG,
     onEnd: (evt) => {
       DragNDropInterface.updatePosition(evt);
     },
   });
+  // Start main controller
   const listFooterDiv = document.querySelector("#div-list-footer");
   gotyList = new GOTYList(listSection, listFooterDiv);
   // Populate input's datalist with candidates
   const gameInputOptions = document.querySelector("#game-input-options");
   const renderer = new GameRenderer();
-  for (let game of games) {
+  for (let game of GAMES) {
     renderer.game = game;
     gameInputOptions.appendChild(renderer.candidateOption());
   }
