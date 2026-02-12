@@ -1,4 +1,5 @@
-import Swal from "https://cdn.skypack.dev/sweetalert2";
+import Sortable from "https://esm.sh/sortablejs@1.15";
+import Swal from "https://esm.sh/sweetalert2";
 
 /* ------------------------ */
 /* Constants                */
