@@ -1,3 +1,9 @@
+/* 
+shame.css
+File for quick fixes, hacks and questionable techniques
+https://csswizardry.com/2013/04/shame-css/ 
+*/
+
 .card-container {
   &.sortable--drag {
     opacity: 1 !important; // override HTML5 default DnD opacity
