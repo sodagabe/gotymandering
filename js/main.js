@@ -1,3 +1,5 @@
+import Swal from "https://cdn.skypack.dev/sweetalert2";
+
 /* ------------------------ */
 /* Constants                */
 /* ------------------------ */
@@ -150,6 +152,60 @@ class Game {
   }
 }
 
+class ModalInterface {
+  static #fireSwal({
+    swalObject,
+    modalOptions,
+    confirmedFunction = () => {},
+    deniedFunction = () => {},
+    dismissedFunction = () => {},
+  }) {
+    swalObject.fire(modalOptions).then((result) => {
+      if (result.isConfirmed) {
+        confirmedFunction(result);
+      } else if (result.isDenied) {
+        deniedFunction(result);
+      } else {
+        dismissedFunction(result);
+      }
+    });
+  }
+
+  static #destructive() {
+    return Swal.mixin({
+      customClass: {
+        confirmButton: "btn btn-danger",
+        cancelButton: "btn btn-secondary",
+      },
+      buttonsStyling: false,
+    });
+  }
+
+  static delete({
+    title,
+    text,
+    confirmButtonText = "Yes, delete",
+    confirmedFunction,
+    dismissedFunction,
+    ...modalOptions
+  }) {
+    this.#fireSwal({
+      swalObject: this.#destructive(),
+      modalOptions: {
+        title: title,
+        text: text,
+        confirmButtonText: confirmButtonText,
+        showCancelButton: true,
+        reverseButtons: true,
+        focusCancel: true,
+        ...modalOptions,
+      },
+      confirmedFunction: confirmedFunction,
+      dismissedFunction: dismissedFunction,
+    });
+  }
+}
+
 class DragNDropInterface {
   static updatePosition(evt) {
     let gameCard = evt.item;
@@ -167,7 +223,13 @@ class EventManager {
   constructor() {
     // Clear list
     const clearListBtn = document.querySelector("#btn-clear-list");
-    clearListBtn.onclick = () => gotyList.clear();
+    clearListBtn.onclick = () => {
+      ModalInterface.delete({
+        title: "Clear your list?",
+        text: "This will remove every game you've added",
+        confirmedFunction: () => gotyList.clear(),
+      });
+    };
     // Add game to list
     const gameInput = document.querySelector("#game-input");
     const gameInputOptions = document.querySelector("#game-input-options");
@@ -185,10 +247,16 @@ class EventManager {
   static gameDeleteButton(button, game) {
     const attributeName = ATTRIBUTE_NAMES.gameID;
     button.setAttribute(attributeName, game.id);
-    button.onclick = (e) => {
-      const gameIDString = button.getAttribute(attributeName);
-      const gameID = parseInt(gameIDString);
-      gotyList.delete(gameID);
+    button.onclick = () => {
+      ModalInterface.delete({
+        title: `Delete ${game.name}?`,
+        text: "You will have to re-add it manually",
+        confirmedFunction: () => {
+          const gameIDString = button.getAttribute(attributeName);
+          const gameID = parseInt(gameIDString);
+          gotyList.delete(gameID);
+        },
+      });
     };
     return button;
   }
