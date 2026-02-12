@@ -1,5 +1,5 @@
 import Sortable from "https://esm.sh/sortablejs@1.15";
-import Swal from "https://esm.sh/sweetalert2";
+import Swal from "https://esm.sh/sweetalert2@11.26";
 
 /* ------------------------ */
 /* Constants                */
