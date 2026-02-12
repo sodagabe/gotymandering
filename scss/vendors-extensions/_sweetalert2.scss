@@ -1,0 +1,22 @@
+@use "../utilities" as u;
+
+.swal2-popup {
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: u.get-primary(100);
+
+  .swal2-title {
+    color: u.get-primary(500);
+    padding: 1rem 0 0 0;
+  }
+
+  .swal2-html-container {
+    color: u.get-primary(900);
+    padding: 0;
+  }
+
+  .swal2-actions {
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+}
