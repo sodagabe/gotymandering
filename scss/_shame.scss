@@ -1,0 +1,5 @@
+.card-container {
+  &.sortable--drag {
+    opacity: 1 !important; // override HTML5 default DnD opacity
+  }
+}
