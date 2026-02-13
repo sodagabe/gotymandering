@@ -21,7 +21,7 @@
       display: flex;
       flex: 0 0 auto;
       align-items: center;
-      background: u.get-primary(900);
+      background: u.get-primary(700);
 
       &__number {
         color: u.get-primary(100);
@@ -73,19 +73,19 @@
         transform: scale(1.05);
 
         .card-number-badge {
-          background: u.get-primary(800);
+          background: u.get-primary(500);
         }
 
         .card-body {
           &--main {
-            color: u.get-primary(800);
+            color: u.get-primary(700);
 
             .card-title {
-              color: u.get-primary(600);
+              color: u.get-primary(500);
             }
 
             .card-subtitle {
-              color: u.get-primary(800);
+              color: u.get-primary(700);
             }
           }
         }
