@@ -23,3 +23,7 @@ $gray-900: u.get-gray(900);
 $card-title-color: u.get-primary(700);
 $card-subtitle-color: u.get-primary(900);
 $card-color: u.get-primary(900);
+
+[class^="col"] {
+  min-width: 0;
+}
