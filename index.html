@@ -7,26 +7,28 @@
     <link rel="stylesheet" href="./css/main.css" />
     <script src="./js/main.js" defer type="module"></script>
   </head>
-  <body class="container">
-    <h1 class="display-2">GOTYMANDERING</h1>
+  <body class="container pt-4">
+    <div class="row">
+      <h1 class="display-2 mb-0">GOTYMANDERING</h1>
+    </div>
     <section class="row">
       <div class="col-xl-6">
         <input
           class="form-control form-control-lg"
           list="game-input-options"
           id="game-input"
-          placeholder="Search..."
+          placeholder="Search"
         />
         <datalist id="game-input-options"></datalist>
       </div>
     </section>
     <section id="goty-list" class="row row-cols-1 gap-3"></section>
     <div
-      class="d-flex flex-column flex-md-row gap-4 align-items-center"
+      class="d-flex flex-column flex-md-row gap-4 align-items-center d-none"
       id="div-list-footer"
     >
       <p class="flex-fill">Average score: <span id="span-avg-score">0</span></p>
-      <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+      <div class="d-grid gap-2 d-md-flex justify-content-md-end d-none">
         <button class="btn btn-outline-danger" id="btn-clear-list">
           <i class="bi bi-eraser-fill me-2"></i><span>Clear list</span>
         </button>
