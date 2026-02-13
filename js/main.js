@@ -4,26 +4,52 @@ import Swal from "https://esm.sh/sweetalert2@11.26";
 /* ------------------------ */
 /* Constants                */
 /* ------------------------ */
+
 const GENRES = [];
 const GAMES = [];
 
 const CLASS_NAMES = {
-  gameCard: "card--game",
+  gameCard: {
+    name: "card--game",
+    numberBadge: {
+      name: "card-number-badge",
+      number: { name: "card-number-badge__number" },
+    },
+    mainBody: {
+      name: "card-body--main",
+    },
+    container: {
+      name: "card-container",
+    },
+  },
 };
 
 const ATTRIBUTE_NAMES = {
   gameID: "data-game-id",
 };
 
+const SORTABLE_CLASS_NAMES = {
+  base: "sortable",
+  ghost: "sortable--ghost",
+  chosen: "sortable--chosen",
+  drag: "sortable--drag",
+  fallback: "sortable--fallback",
+};
 const SORTABLE_CONFIG = {
   animation: 120,
   direction: "vertical",
-  ghostClass: "sortable--ghost",
-  chosenClass: "sortable--chosen",
-  dragClass: "sortable--drag",
-  fallbackClass: "sortable--fallback",
+  ghostClass: SORTABLE_CLASS_NAMES.ghost,
+  chosenClass: SORTABLE_CLASS_NAMES.chosen,
+  dragClass: SORTABLE_CLASS_NAMES.drag,
+  fallbackClass: SORTABLE_CLASS_NAMES.fallback,
   forceFallback: true,
   scrollSpeed: 50,
+  onEnd: (evt) => {
+    DragNDropInterface.updatePosition(evt);
+  },
+  onChange: () => {
+    DragNDropInterface.updateRanking();
+  },
 };
 
 /* ------------------------ */
@@ -227,14 +253,15 @@ class ModalInterface {
 
 class DragNDropInterface {
   static updatePosition(evt) {
-    let gameCard = evt.item;
-    const className = CLASS_NAMES.gameCard;
-    while (!gameCard.classList.contains(className)) {
-      gameCard = gameCard.firstElementChild;
-    }
+    const className = CLASS_NAMES.gameCard.name;
+    let gameCard = evt.item.querySelector(`.${className}`);
     const oldIndex = evt.oldDraggableIndex;
     const newIndex = evt.newDraggableIndex;
     EventManager.updatePosition(gameCard, oldIndex, newIndex);
+  }
+
+  static updateRanking() {
+    EventManager.updateRanking();
   }
 }
 
@@ -382,31 +409,56 @@ class GameRenderer {
     this.game = game;
   }
 
-  listCard() {
-    const cardContainer = document.createElement("article");
-    const card = document.createElement("div");
-    const cardBody = document.createElement("div");
+  #numberBadge(place = 0) {
+    const number = document.createElement("p");
+    number.className = CLASS_NAMES.gameCard.numberBadge.number.name;
+    number.textContent = place;
+    const numberDiv = document.createElement("div");
+    numberDiv.className = `card-body col-auto ${CLASS_NAMES.gameCard.numberBadge.name}`;
+    numberDiv.appendChild(number);
+    return numberDiv;
+  }
+
+  #cardBody() {
     const cardTitle = document.createElement("h5");
-    const cardGenres = document.createElement("h6");
-    const cardReleaseDate = document.createElement("p");
-    cardContainer.className = "card-container sortable col";
-    card.className = `card ${CLASS_NAMES.gameCard}`;
-    card.setAttribute(ATTRIBUTE_NAMES.gameID, this.game.id);
-    cardBody.className = "card-body";
     cardTitle.className = "card-title text-truncate";
     cardTitle.textContent = this.game.name;
+    const cardGenres = document.createElement("h6");
     cardGenres.className = "card-subtitle small text-truncate";
     cardGenres.textContent = this.game.genres;
+    const cardReleaseDate = document.createElement("p");
     cardReleaseDate.className = "card-text small";
     cardReleaseDate.textContent = this.game.releaseDate;
+    const trashIconButton = IconRenderer.outlineButton("x-lg", true);
+    EventManager.gameDeleteButton(trashIconButton, this.game);
+    trashIconButton.classList.add("btn--delete");
+    const cardBody = document.createElement("div");
+    cardBody.className = `card-body ${CLASS_NAMES.gameCard.mainBody.name}`;
     cardBody.appendChild(cardTitle);
     cardBody.appendChild(cardGenres);
     cardBody.appendChild(cardReleaseDate);
-    let trashIconButton = IconRenderer.outlineButton("x-lg", true);
-    EventManager.gameDeleteButton(trashIconButton, this.game);
-    trashIconButton.classList.add("btn--delete");
     cardBody.appendChild(trashIconButton);
-    card.appendChild(cardBody);
+    const container = document.createElement("div");
+    container.className = "col";
+    container.appendChild(cardBody);
+    return container;
+  }
+
+  listCard(place) {
+    const cardContainer = document.createElement("article");
+    const card = document.createElement("div");
+    const containerClass = CLASS_NAMES.gameCard.container.name;
+    const sortableClass = SORTABLE_CLASS_NAMES.base;
+    cardContainer.className = `${containerClass} ${sortableClass} col`;
+    card.className = `card ${CLASS_NAMES.gameCard.name}`;
+    card.setAttribute(ATTRIBUTE_NAMES.gameID, this.game.id);
+    const numberBadge = this.#numberBadge(place);
+    const cardBody = this.#cardBody();
+    const cardContents = document.createElement("div");
+    cardContents.className = "row g-0";
+    cardContents.appendChild(numberBadge);
+    cardContents.appendChild(cardBody);
+    card.appendChild(cardContents);
     cardContainer.appendChild(card);
     return cardContainer;
   }
@@ -438,10 +490,12 @@ class GameListRenderer {
     this.#games = newList ?? this.#games;
     this.#parentElement.textContent = "";
     const gameRenderer = new GameRenderer();
+    let count = 1;
     for (const game of this.#games) {
       gameRenderer.game = game;
-      const gameRender = gameRenderer.listCard();
+      const gameRender = gameRenderer.listCard(count);
       this.#parentElement.appendChild(gameRender);
+      count++;
     }
     const needsFooter = this.#games.length > 1;
     const utilityClass = "d-none";
@@ -450,6 +504,42 @@ class GameListRenderer {
       this.#avgScoreElement.textContent = avgScore;
     } else {
       this.#footerElement.classList.add(utilityClass);
+    }
+  }
+
+  updateRanking() {
+    // Update the ranks in a straightforward sweep when the list is static
+    const rankElements = this.#parentElement.querySelectorAll(
+      `.${CLASS_NAMES.gameCard.numberBadge.number.name}`,
+    );
+    let count = 1;
+    for (const rank of rankElements) {
+      rank.textContent = count;
+      count++;
+    }
+  }
+
+  updateRankingDynamic() {
+    // Update the ranks while a game is being dragged
+    const sortableClass = SORTABLE_CLASS_NAMES.base;
+    const dragClass = SORTABLE_CLASS_NAMES.drag;
+    const cardContainers = this.#parentElement.querySelectorAll(
+      `.${sortableClass}:not(.${dragClass})`,
+    );
+    const draggedCard = this.#parentElement.querySelector(`.${dragClass}`);
+    const rankClassName = CLASS_NAMES.gameCard.numberBadge.number.name;
+    const draggedCardRank = draggedCard.querySelector(`.${rankClassName}`);
+    let count = 1;
+    for (const container of cardContainers) {
+      const rank = container.querySelector(`.${rankClassName}`);
+      rank.textContent = count;
+      const isDraggedGhost = container.classList.contains(
+        `${SORTABLE_CLASS_NAMES.ghost}`,
+      );
+      if (isDraggedGhost) {
+        draggedCardRank.textContent = count;
+      }
+      count++;
     }
   }
 }
@@ -499,9 +589,15 @@ class EventManager {
   }
 
   static updatePosition(gameCard, oldIndex, newIndex) {
+    // Update internal lists and ranks
     const gameIDString = gameCard.getAttribute(ATTRIBUTE_NAMES.gameID);
     const gameID = parseInt(gameIDString);
     gotyList.updatePosition(gameID, oldIndex, newIndex);
+  }
+
+  static updateRanking() {
+    // Update ranks only
+    gotyList.updateRanking();
   }
 }
 
@@ -539,6 +635,11 @@ class GOTYList {
 
   updatePosition(gameID, oldIndex, newIndex) {
     this.#controller.updatePosition(gameID, oldIndex, newIndex);
+    this.#renderer.updateRanking();
+  }
+
+  updateRanking() {
+    this.#renderer.updateRankingDynamic();
   }
 
   clear() {
@@ -563,9 +664,6 @@ DataManager.fetchDB().then(() => {
   const listSection = document.querySelector("#goty-list");
   Sortable.create(listSection, {
     ...SORTABLE_CONFIG,
-    onEnd: (evt) => {
-      DragNDropInterface.updatePosition(evt);
-    },
   });
   // Start main controller
   const listFooterDiv = document.querySelector("#div-list-footer");

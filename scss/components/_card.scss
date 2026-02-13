@@ -1,6 +1,7 @@
 @use "../utilities" as u;
 
 .card {
+  overflow: hidden;
   border: none;
 
   .card-body {
@@ -15,6 +16,22 @@
 
   &--game {
     background: u.get-primary(200);
+
+    .card-number-badge {
+      display: flex;
+      flex: 0 0 auto;
+      align-items: center;
+      background: u.get-primary(900);
+
+      &__number {
+        color: u.get-primary(100);
+        min-width: 1rem;
+        font-family: "Fugaz One";
+        font-size: 1.5rem;
+        text-align: center;
+        align-content: center;
+      }
+    }
 
     .btn--delete {
       display: none;
@@ -51,9 +68,27 @@
 
     &.sortable--drag {
       .card {
-        box-shadow: 0 0 2rem hsl(from u.get-primary(800) h s l / 0.7);
+        box-shadow: 0 0 3rem hsl(from u.get-primary(500) h s l / 0.8);
         background: u.get-primary(300);
-        transform: scale(1.03);
+        transform: scale(1.05);
+
+        .card-number-badge {
+          background: u.get-primary(800);
+        }
+
+        .card-body {
+          &--main {
+            color: u.get-primary(800);
+
+            .card-title {
+              color: u.get-primary(600);
+            }
+
+            .card-subtitle {
+              color: u.get-primary(800);
+            }
+          }
+        }
       }
     }
   }
