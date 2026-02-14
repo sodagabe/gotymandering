@@ -14,8 +14,11 @@
     }
   }
 
+  $game-card-background: u.get-primary(200);
+  $game-card-background-hover: u.get-primary(300);
+
   &--game {
-    background: u.get-primary(200);
+    background: $game-card-background;
 
     .card-number-badge {
       display: flex;
@@ -33,16 +36,27 @@
       }
     }
 
-    .btn--delete {
+    .delete-btn-container {
       display: none;
+      align-items: center;
+      justify-content: end;
       position: absolute;
-      right: 1rem;
-      top: 1rem;
+      width: fit-content;
+      height: 100%;
+      right: 0;
+      padding: 0 1rem;
+      background: linear-gradient(
+        to left,
+        $game-card-background-hover,
+        98%,
+        transparent
+      );
     }
 
     &:hover {
-      .btn--delete {
-        display: inline;
+      background: $game-card-background-hover;
+      .delete-btn-container {
+        display: flex;
       }
     }
   }
@@ -51,12 +65,6 @@
 .card-container {
   &.sortable {
     cursor: grab;
-
-    &:hover {
-      .card {
-        background: u.get-primary(300);
-      }
-    }
 
     &.sortable--ghost {
       opacity: 0;
