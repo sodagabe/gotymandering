@@ -18,6 +18,12 @@ const CLASS_NAMES = {
     mainBody: {
       name: "card-body--main",
     },
+    deleteButton: {
+      name: "delete-btn-container__btn",
+      container: {
+        name: "delete-btn-container",
+      },
+    },
     container: {
       name: "card-container",
     },
@@ -44,6 +50,7 @@ const SORTABLE_CONFIG = {
   fallbackClass: SORTABLE_CLASS_NAMES.fallback,
   forceFallback: true,
   scrollSpeed: 50,
+  filter: `.${CLASS_NAMES.gameCard.deleteButton.name}`,
   onEnd: (evt) => {
     DragNDropInterface.updatePosition(evt);
   },
@@ -380,25 +387,24 @@ class IconRenderer {
     return icon;
   }
 
-  static _button(name, variantBase, danger = false, variant = null) {
+  static #button({ name, variant = "primary", outline = false }) {
     const icon = this.icon(name);
     const button = document.createElement("button");
     button.appendChild(icon);
-    button.className = "btn";
-    let btnVariant = variant ?? "primary";
-    if (danger) {
-      btnVariant = "danger";
+    let variantBase = "btn";
+    if (outline) {
+      variantBase += "-outline";
     }
-    button.classList.add(`${variantBase}-${btnVariant}`);
+    button.classList.add("btn", `${variantBase}-${variant}`);
     return button;
   }
 
-  static solidButton(name, danger = false, variant = null) {
-    return this._button(name, "btn", danger, variant);
+  static solidButton(name, variant) {
+    return this.#button({ name: name, variant: variant });
   }
 
-  static outlineButton(name, danger = false, variant = null) {
-    return this._button(name, "btn-outline", danger, variant);
+  static outlineButton(name, variant) {
+    return this.#button({ name: name, variant: variant, outline: true });
   }
 }
 
@@ -429,19 +435,26 @@ class GameRenderer {
     const cardReleaseDate = document.createElement("p");
     cardReleaseDate.className = "card-text small";
     cardReleaseDate.textContent = this.game.releaseDate;
-    const trashIconButton = IconRenderer.outlineButton("x-lg", true);
-    EventManager.gameDeleteButton(trashIconButton, this.game);
-    trashIconButton.classList.add("btn--delete");
     const cardBody = document.createElement("div");
     cardBody.className = `card-body ${CLASS_NAMES.gameCard.mainBody.name}`;
     cardBody.appendChild(cardTitle);
     cardBody.appendChild(cardGenres);
     cardBody.appendChild(cardReleaseDate);
-    cardBody.appendChild(trashIconButton);
     const container = document.createElement("div");
     container.className = "col";
     container.appendChild(cardBody);
     return container;
+  }
+
+  #trashIconButton() {
+    const trashIconButton = IconRenderer.outlineButton("x-lg", "primary");
+    EventManager.gameDeleteButton(trashIconButton, this.game);
+    trashIconButton.classList.add(CLASS_NAMES.gameCard.deleteButton.name);
+    const trashIconButtonContainer = document.createElement("div");
+    trashIconButtonContainer.className =
+      CLASS_NAMES.gameCard.deleteButton.container.name;
+    trashIconButtonContainer.appendChild(trashIconButton);
+    return trashIconButtonContainer;
   }
 
   listCard(place) {
@@ -458,6 +471,8 @@ class GameRenderer {
     cardContents.className = "row g-0";
     cardContents.appendChild(numberBadge);
     cardContents.appendChild(cardBody);
+    const trashIconButton = this.#trashIconButton();
+    cardContents.appendChild(trashIconButton);
     card.appendChild(cardContents);
     cardContainer.appendChild(card);
     return cardContainer;
